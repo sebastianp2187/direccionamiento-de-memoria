@@ -18,7 +18,6 @@ proyecto-arquitectura/
 │ ├── main.js # Inicialización y event listeners
 │ ├── modo-real.js # Lógica de direccionamiento real
 │ └── modo-protegido.js # Lógica de selector
-├── assets/images/ # Recursos visuales
 ├── DESIGN.md # Especificaciones de diseño
 └── README.md # Este archivo
 
@@ -64,18 +63,13 @@ Paleta de colores:
 - **JavaScript (ES6+)** - Lógica interactiva
 - **Sin dependencias externas** - Vanilla JS
 
-## 📚 Referencias
-- Intel 64 and IA-32 Architectures Software Developer's Manual, Volume 3A
-- Andrew S. Tanenbaum - Organización Estructurada de Computadoras
-- Silberschatz, Galvin & Gagne - Sistemas Operativos
-
 ## 📖 Cátedra
 - **Materia:** Arquitectura de Computadores
 - **Universidad:** UFPS - Ingeniería de Sistemas
-- **Profesor:** [Nombre del profesor]
+- **Profesor:** Miguel Robles
 
 ## 📅 Fecha de Creación
-2025
+2026
 
 ## 📝 Licencia
 Proyecto educativo - Uso académico permitido
