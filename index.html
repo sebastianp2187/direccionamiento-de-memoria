@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>Direccionamiento de Memoria x86 - Real vs Protegido</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          background: "#faf8ff",
+          surface: "#faf8ff",
+          "surface-dim": "#d2d9f4",
+          "surface-bright": "#faf8ff",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f2f3ff",
+          "surface-container": "#eaedff",
+          "surface-container-high": "#e2e7ff",
+          "surface-container-highest": "#dae2fd",
+          "on-surface": "#131b2e",
+          "on-surface-variant": "#414751",
+          outline: "#717783",
+          "outline-variant": "#c1c7d3",
+          primary: "#005da7",
+          "primary-container": "#2976c7",
+          "primary-fixed": "#d4e3ff",
+          "primary-fixed-dim": "#a4c9ff",
+          "on-primary": "#ffffff",
+          "on-primary-container": "#fdfcff",
+          "on-primary-fixed": "#001c39",
+          "on-primary-fixed-variant": "#004883",
+          secondary: "#7c572d",
+          "secondary-container": "#fecb97",
+          "secondary-fixed": "#ffdcbc",
+          "secondary-fixed-dim": "#efbd8a",
+          "on-secondary": "#ffffff",
+          "on-secondary-container": "#79542a",
+          "on-secondary-fixed": "#2c1700",
+          "on-secondary-fixed-variant": "#614018",
+          tertiary: "#006947",
+          "tertiary-container": "#00855b",
+          "tertiary-fixed": "#6ffbbe",
+          "tertiary-fixed-dim": "#4edea3",
+          "on-tertiary": "#ffffff",
+          "on-tertiary-container": "#f5fff6",
+          "on-tertiary-fixed": "#002113",
+          "on-tertiary-fixed-variant": "#005236",
+          error: "#ba1a1a",
+          "error-container": "#ffdad6",
+          "on-error": "#ffffff",
+          "on-error-container": "#93000a",
+          "inverse-surface": "#283044",
+          "inverse-on-surface": "#eef0ff",
+          "inverse-primary": "#a4c9ff",
+          "surface-tint": "#0060ac",
+          "surface-variant": "#dae2fd",
+        },
+        borderRadius: {
+          DEFAULT: "0.25rem",
+          sm: "0.125rem",
+          md: "0.375rem",
+          lg: "0.5rem",
+          xl: "0.75rem",
+          full: "9999px",
+        },
+        spacing: {
+          "gutter-mobile": "0.75rem",
+          gutter: "1.5rem",
+          margin: "2rem",
+          "margin-mobile": "1rem",
+          "space-xs": "0.25rem",
+          "space-sm": "0.5rem",
+          "space-md": "1rem",
+          "space-lg": "1.5rem",
+          "space-xl": "2.5rem",
+        },
+        fontFamily: {
+          "code-lg": ["JetBrains Mono", "monospace"],
+          "body-md": ["Inter", "sans-serif"],
+          "headline-xl-mobile": ["Inter", "sans-serif"],
+          "headline-lg-mobile": ["Inter", "sans-serif"],
+          "body-lg": ["Inter", "sans-serif"],
+          "label-sm": ["JetBrains Mono", "monospace"],
+          "headline-xl": ["Inter", "sans-serif"],
+          "label-md": ["Inter", "sans-serif"],
+          "code-sm": ["JetBrains Mono", "monospace"],
+          "body-sm": ["Inter", "sans-serif"],
+          "code-md": ["JetBrains Mono", "monospace"],
+          "headline-lg": ["Inter", "sans-serif"],
+          "headline-sm": ["Inter", "sans-serif"],
+          "headline-md": ["Inter", "sans-serif"],
+        },
+        fontSize: {
+          "code-lg": ["15px", { lineHeight: "24px", fontWeight: "500" }],
+          "body-md": ["14px", { lineHeight: "22px", fontWeight: "400" }],
+          "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "headline-lg-mobile": ["22px", { lineHeight: "30px", letterSpacing: "-0.015em", fontWeight: "600" }],
+          "body-lg": ["16px", { lineHeight: "26px", fontWeight: "400" }],
+          "label-sm": ["10px", { lineHeight: "14px", letterSpacing: "0.06em", fontWeight: "600" }],
+          "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.025em", fontWeight: "700" }],
+          "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "600" }],
+          "code-sm": ["11px", { lineHeight: "16px", letterSpacing: "0.04em", fontWeight: "500" }],
+          "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+          "code-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+          "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }],
+          "headline-sm": ["16px", { lineHeight: "24px", fontWeight: "600" }],
+          "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.015em", fontWeight: "600" }],
+        },
+      },
+    },
+  };
+</script>
+<link rel="stylesheet" href="css/styles.css"/>
+<!-- Top Progress & Mode State Header Banner -->
+ <section class="w-full px-gutter py-space-sm bg-surface-container-high/60 backdrop-blur-sm">
+<div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-space-sm">
+</div>
+</section>
+<!-- 1. HERO SECTION -->
+<section class="w-full px-gutter py-space-xl bg-gradient-to-b from-surface-container-low via-background to-surface" id="hero">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
+<!-- Text & Technical Context -->
+<div class="lg:col-span-7 flex flex-col gap-space-md">
+<div class="inline-flex items-center gap-space-xs px-space-sm py-1 rounded bg-secondary-fixed text-on-secondary-fixed-variant self-start">
+<span class="material-symbols-outlined text-[16px]">school</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Referencia Técnica e Interactiva • Arquitectura de Computadores</span>
+</div>
+<div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight mb-space-xs">
+            Direccionamiento de Memoria x86
+          </h1>
+<p class="font-headline-md text-headline-md text-primary font-medium">
+            Modo Real vs Modo Protegido • Arquitectura de Computadores
+          </p>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
+          Desde el nacimiento del procesador Intel 8086 con su bus de direcciones de 20 bits hasta la consolidación del modelo segmentado-paginado en 80386, la arquitectura x86 transformó el acceso a la memoria RAM: pasando de una aritmética plana sin privilegios a un ecosistema multinivel con tablas de descriptores (GDT/LDT), anillos de protección por hardware y memoria virtual.
+        </p>
+<!-- Micro Feature Badges -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-space-sm pt-space-xs">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="font-code-sm text-code-sm text-secondary block font-semibold">1 MB Espacio</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Segmento × 16 + Desplazamiento</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="font-code-sm text-code-sm text-primary block font-semibold">4 GB Lineal</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Selector → Descriptor → Base</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm col-span-2 sm:col-span-1">
+<span class="font-code-sm text-code-sm text-tertiary block font-semibold">Ring 0 - Ring 3</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Protección DPL / CPL / RPL</span>
+</div>
+</div>
+</div>
+<!-- Microprocessor PCB / Register Schematic Visual -->
+<div class="lg:col-span-5 flex justify-center">
+<div class="w-full max-w-md p-space-md rounded-xl bg-inverse-surface text-inverse-on-surface shadow-xl relative overflow-hidden">
+<!-- Background Bus Circuit Elements -->
+<div class="absolute -right-12 -top-12 w-40 h-40 rounded-full bg-primary/20 blur-2xl pointer-events-none"></div>
+<div class="absolute -left-12 -bottom-12 w-40 h-40 rounded-full bg-secondary/20 blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-inverse-surface/80">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim inline-block"></span>
+<span class="font-code-sm text-code-sm text-inverse-on-surface tracking-wider uppercase font-semibold">NÚCLEO DE REGISTROS CPU // x86</span>
+</div>
+<span class="font-label-sm text-label-sm text-surface-variant/80">Bus Interno x86</span>
+</div>
+<!-- Registers Grid Schematic -->
+<div class="grid grid-cols-2 gap-space-xs font-code-sm text-code-sm">
+<!-- Code Segment -->
+<div class="p-space-xs rounded bg-surface-container-highest/10 flex flex-col justify-between">
+<div class="flex justify-between items-center text-primary-fixed-dim">
+<span class="font-bold">CS (Código)</span>
+<span class="font-label-sm text-[9px] uppercase">Selector/Base</span>
+</div>
+<span class="text-surface-container-lowest font-medium mt-1">0x1000 [Ring 0]</span>
+</div>
+<!-- Data Segment -->
+<div class="p-space-xs rounded bg-surface-container-highest/10 flex flex-col justify-between">
+<div class="flex justify-between items-center text-primary-fixed-dim">
+<span class="font-bold">DS (Datos)</span>
+<span class="font-label-sm text-[9px] uppercase">Referencia Lineal</span>
+</div>
+<span class="text-surface-container-lowest font-medium mt-1">0x0020 [DS:SI]</span>
+</div>
+<!-- Stack Segment -->
+<div class="p-space-xs rounded bg-surface-container-highest/10 flex flex-col justify-between">
+<div class="flex justify-between items-center text-secondary-fixed-dim">
+<span class="font-bold">SS (Pila)</span>
+<span class="font-label-sm text-[9px] uppercase">Puntero Pila</span>
+</div>
+<span class="text-surface-container-lowest font-medium mt-1">0x9000 [SS:SP]</span>
+</div>
+<!-- Extra Segment -->
+<div class="p-space-xs rounded bg-surface-container-highest/10 flex flex-col justify-between">
+<div class="flex justify-between items-center text-secondary-fixed-dim">
+<span class="font-bold">ES (Extra)</span>
+<span class="font-label-sm text-[9px] uppercase">Destino Cadena</span>
+</div>
+<span class="text-surface-container-lowest font-medium mt-1">0x2000 [ES:DI]</span>
+</div>
+<!-- Instruction Pointer Register -->
+<div class="p-space-xs rounded bg-surface-container-highest/15 col-span-2 flex items-center justify-between">
+<div>
+<span class="font-bold text-tertiary-fixed block font-code-sm">EIP / IP</span>
+<span class="font-label-sm text-[9px] text-surface-variant/70">Puntero de Instrucción (Desplazamiento)</span>
+</div>
+<span class="text-tertiary-fixed font-semibold font-code-md">0x00007C00</span>
+</div>
+</div>
+<!-- Bus Trace Diagram SVG -->
+<div class="mt-space-sm pt-space-xs bg-inverse-surface flex items-center justify-center">
+<svg class="w-full h-12 text-surface-variant/40" fill="none" stroke="currentColor" viewbox="0 0 320 48">
+<path class="text-primary-fixed" d="M10 24 H120 V8 H200 V24 H310" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<circle class="text-primary" cx="10" cy="24" fill="currentColor" r="3"></circle>
+<circle class="text-secondary" cx="120" cy="8" fill="currentColor" r="3"></circle>
+<circle class="text-secondary" cx="200" cy="8" fill="currentColor" r="3"></circle>
+<circle class="text-tertiary-fixed" cx="310" cy="24" fill="currentColor" r="3"></circle>
+<text class="font-code-sm text-surface-variant fill-current" fill="currentColor" font-size="9" text-anchor="middle" x="160" y="38">Dirección Lógica [Segmento:Desplazamiento] → Bus Físico</text>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. SECCIÓN COMPARATIVA (Lado a Lado / 2 Columnas) -->
+<section class="w-full px-gutter py-space-xl bg-surface-container-lowest" id="modes">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs text-center max-w-3xl mx-auto">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">Paradigmas de Traducción</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">
+          Paradigmas de Traducción: Modo Real vs Modo Protegido
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Contraste fundamental entre la simple aritmética de desplazamiento por bus cableado del 8086 y la indirección protegida basada en descriptores de 80386.
+        </p>
+</div>
+<!-- Two-Column Side-by-Side Comparison Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg items-stretch">
+<!-- COLUMNA 1: MODO REAL (16 bits) -->
+<div class="rounded-xl p-space-lg bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex flex-col gap-space-md">
+<!-- Header Mode -->
+<div class="flex items-center justify-between">
+<span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm font-semibold bg-secondary-container text-on-secondary-container uppercase">
+                Modo Heredado • 8086 / MS-DOS
+              </span>
+<span class="font-code-sm text-code-sm text-secondary font-semibold">Bus: 20 bits</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">
+                Modo Real (16 bits)
+              </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                La dirección de segmento se interpreta directamente como la dirección base física desplazada 4 bits a la izquierda en hardware.
+              </p>
+</div>
+<!-- 4 Micro-cards quadrants -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">1. Dirección de Segmento</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">CS, DS, SS, ES</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">16 bits de ancho, almacena párrafo base.</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">2. Desplazamiento</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">IP, SP, BP, SI, DI</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Dirección efectiva de 16 bits (0 a 64 KB).</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">3. Límite de Memoria</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">1,048,576 Bytes (1 MB)</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">+64 KB HMA hasta 0x10FFEF con A20 activa.</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase">4. Espacio Direccionable</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">Segmentos Solapados</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Cada segmento empieza cada 16 bytes.</span>
+</div>
+</div>
+<!-- Visual Formula Box -->
+<div class="p-space-md rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-secondary font-bold">Fórmula de Dirección Física</span>
+<div class="p-space-sm rounded bg-surface-container font-code-lg text-code-lg text-on-surface text-center font-bold">
+                Dirección Física = (Segmento × 16) + Desplazamiento
+              </div>
+<span class="font-code-sm text-code-sm text-on-surface-variant text-center">
+                Equivalente a: <code class="text-secondary font-bold">(Segmento &lt;&lt; 4) + Desplazamiento</code>
+</span>
+</div>
+<!-- Hexadecimal Step-by-Step Example Card -->
+<div class="p-space-md rounded-lg bg-surface-container-high/40 flex flex-col gap-space-xs">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Demostración Numérica Hexadecimal:</span>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-xs font-code-sm text-code-sm text-on-surface pt-1">
+<div class="p-2 rounded bg-surface-container-lowest">
+<span class="block text-outline font-label-sm">Entrada</span>
+<span class="font-bold">Segmento: 0x2000</span>
+<span class="font-bold block">Desplazamiento: 0x0150</span>
+</div>
+<div class="p-2 rounded bg-surface-container-lowest">
+<span class="block text-outline font-label-sm">Desplazamiento (×16 / shift)</span>
+<span class="text-secondary font-bold">0x20000</span>
+<span class="text-[11px] text-on-surface-variant block font-body-sm">Añade 0h a la derecha</span>
+</div>
+<div class="p-2 rounded bg-secondary-fixed text-on-secondary-fixed font-bold flex flex-col justify-center">
+<span class="text-label-sm block uppercase text-[10px]">Dirección Física de 20 bits</span>
+<span class="text-code-lg">0x20150</span>
+</div>
+</div>
+</div>
+<!-- Vulnerabilities / Limitations Callout -->
+<div class="p-space-sm rounded-lg bg-error-container text-on-error-container flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-[20px] text-error">warning</span>
+<div class="font-body-sm text-body-sm">
+<strong class="font-bold">Sin Protección de Memoria:</strong> Cualquier programa de usuario o puntero corrupto puede sobrescribir el vector de interrupciones (IVT en 0x00000), el código de la BIOS o el propio núcleo del sistema operativo.
+              </div>
+</div>
+</div>
+</div>
+<!-- COLUMNA 2: MODO PROTEGIDO (Segmentado y Lineal / 32 bits) -->
+<div class="rounded-xl p-space-lg bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex flex-col gap-space-md">
+<!-- Header Mode -->
+<div class="flex items-center justify-between">
+<span class="px-space-sm py-0.5 rounded font-label-sm text-label-sm font-semibold bg-primary-fixed text-on-primary-fixed uppercase">
+                Modo Avanzado • 80286 / 80386
+              </span>
+<span class="font-code-sm text-code-sm text-primary font-semibold">Bus: 32 bits (4 GB)</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">
+                Modo Protegido (Segmentado y Lineal / 32 bits)
+              </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Los registros de segmento ya no apuntan a la memoria directamente; son selectores que indexan estructuras de control (Descriptores) cargadas en RAM.
+              </p>
+</div>
+<!-- 4 Core Features -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold uppercase">1. Selector de Segmento</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">16 bits: Índice + TI + RPL</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Apunta a una entrada específica en GDT/LDT.</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold uppercase">2. Tablas de Descriptores</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">GDT y LDT (GDTR / LDTR)</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Arreglo en RAM de hasta 8192 descriptores.</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold uppercase">3. Descriptor de Segmento</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">Estructura de 64 bits</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Base 32-bit, Límite 20-bit, Permisos y DPL.</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary font-semibold uppercase">4. Espacio Lineal</span>
+<span class="font-code-md text-code-md text-on-surface font-semibold">4,294,967,296 Bytes (4 GB)</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Convertible a físico por MMU Paginación.</span>
+</div>
+</div>
+<!-- Pipeline Visual Flow Diagram -->
+<div class="p-space-md rounded-lg bg-surface-container-lowest shadow-sm flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-primary font-bold">Ruta de Traducción de Memoria Protegida</span>
+<div class="flex flex-col gap-1.5 font-code-sm text-code-sm">
+<!-- Flow Items -->
+<div class="flex items-center gap-space-xs p-1.5 rounded bg-surface-container">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[10px]">1</span>
+<span>Selector en Registro CS/DS → Extrae <strong>Índice (13 bits)</strong></span>
+</div>
+<div class="flex items-center gap-space-xs p-1.5 rounded bg-surface-container">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[10px]">2</span>
+<span>Localiza entrada en GDT en <code>GDTR.Base + (Índice × 8)</code></span>
+</div>
+<div class="flex items-center gap-space-xs p-1.5 rounded bg-surface-container">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[10px]">3</span>
+<span>Desempaqueta Descriptor (64 bits) y obtiene <strong>Dirección Base de 32 bits</strong></span>
+</div>
+<div class="flex items-center gap-space-xs p-1.5 rounded bg-primary-fixed text-on-primary-fixed font-semibold">
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-[10px]">4</span>
+<span>Dirección Lineal = <code>Base (Descriptor) + Desplazamiento (32 bits)</code></span>
+</div>
+</div>
+</div>
+<!-- Advantages Callout -->
+<div class="p-space-sm rounded-lg bg-tertiary-container text-on-tertiary-container flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<div class="font-body-sm text-body-sm">
+<strong class="font-bold">Aislamiento por Hardware:</strong> Los anillos CPL (Nivel de Privilegio Actual) y DPL impiden que procesos de usuario modifiquen memoria del kernel; los límites de segmento provocan una excepción <code>#GP (Fallo de Protección General)</code> ante desbordamientos.
+              </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. SECCIÓN DE DETALLES TÉCNICOS (Estructuras de Datos con Tabs e Interacción) -->
+<section class="w-full px-gutter py-space-xl bg-surface" id="technical-details">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-md">
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">Especificación de Estructuras 80386</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">
+            Análisis a Nivel de Bit: Selector
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Explore los campos binarios que gobiernan la segmentación protegida del procesador x86 según el Intel SDM Vol. 3A.
+          </p>
+</div>
+</div>
+<div class="flex flex-col gap-space-md" id="tech-panel-selector">
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-lg">
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Formato del Selector de Segmento (Registro CS, DS, SS, ES, FS, GS)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Un registro selector de 16 bits no contiene una dirección base; almacena tres campos que indexan la GDT/LDT e informan el nivel de privilegio solicitado.
+            </p>
+</div>
+<!-- 16-Bit Graphical Layout Ribbon -->
+<div class="flex flex-col gap-space-xs overflow-x-auto pb-space-xs">
+<div class="min-w-[680px] grid grid-cols-16 gap-1 text-center font-code-sm">
+<!-- INDEX BITS (15 down to 3) = 13 bits -->
+<div class="col-span-13 p-space-sm rounded bg-primary text-on-primary flex flex-col justify-between items-center shadow-sm">
+<span class="font-bold text-code-lg">Índice (13 bits)</span>
+<span class="text-primary-fixed font-code-sm text-xs">Bits 15 .. 3</span>
+<span class="text-[10px] opacity-90">Selecciona 1 de hasta 8,192 Descriptores en la tabla</span>
+</div>
+<!-- TI BIT (Bit 2) = 1 bit -->
+<div class="col-span-1 p-space-sm rounded bg-tertiary text-on-tertiary flex flex-col justify-between items-center shadow-sm">
+<span class="font-bold text-code-md">TI (1 bit)</span>
+<span class="text-tertiary-fixed font-code-sm text-xs">Bit 2</span>
+<span class="text-[9px] opacity-90 leading-tight">0:GDT 1:LDT</span>
+</div>
+<!-- RPL BITS (Bits 1..0) = 2 bits -->
+<div class="col-span-2 p-space-sm rounded bg-secondary text-on-secondary flex flex-col justify-between items-center shadow-sm">
+<span class="font-bold text-code-md">RPL (2 bits)</span>
+<span class="text-secondary-fixed font-code-sm text-xs">Bits 1..0</span>
+<span class="text-[10px] opacity-90">Nivel de Privilegio Solicitado: 0..3</span>
+</div>
+</div>
+</div>
+<!-- Explanation Detail Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Index Card -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-bold">
+<span class="material-symbols-outlined text-[18px]">format_list_numbered</span>
+<span class="font-headline-sm text-headline-sm">Índice [15:3]</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Índice multiplicado implícitamente por 8 (tamaño de cada descriptor) para obtener el desplazamiento de byte exacto en la tabla GDT o LDT. Rango: 0 a 8191 (2¹³ entradas).
+              </p>
+<div class="mt-auto font-code-sm text-code-sm p-1.5 rounded bg-surface-container text-on-surface font-semibold">
+                Rango: 0 a 8191 (2¹³ entradas)
+              </div>
+</div>
+<!-- TI Card -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-tertiary font-bold">
+<span class="material-symbols-outlined text-[18px]">table_chart</span>
+<span class="font-headline-sm text-headline-sm">TI [Bit 2]</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Indicador de Tabla (Table Indicator):</strong> Especifica cuál tabla del sistema consultar. Si es 0, consulta la GDT global; si es 1, consulta la LDT local del proceso actual. 0 = Tabla GDT • 1 = Tabla LDT.
+              </p>
+<div class="mt-auto font-code-sm text-code-sm p-1.5 rounded bg-surface-container text-on-surface font-semibold">
+                0 = Tabla GDT • 1 = Tabla LDT
+              </div>
+</div>
+<!-- RPL Card -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-secondary font-bold">
+<span class="material-symbols-outlined text-[18px]">security</span>
+<span class="font-headline-sm text-headline-sm">RPL [Bits 1:0]</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Nivel de Privilegio Solicitado (Requested Privilege Level):</strong> Nivel de privilegio solicitado por quien invoca el segmento (Ring 0 Kernel, Ring 1/2 Drivers, Ring 3 Usuario). 00b = Ring 0 (Kernel) • 11b = Ring 3 (Usuario).
+              </p>
+<div class="mt-auto font-code-sm text-code-sm p-1.5 rounded bg-surface-container text-on-surface font-semibold">
+                00b = Ring 0 (Kernel) • 11b = Ring 3 (Usuario)
+              </div>
+</div>
+</div>
+</section>
+<!-- 4. SECCIÓN DE EJEMPLOS Y SIMULACIÓN PEDAGÓGICA (Ejemplos Didácticos Estáticos) -->
+<section class="w-full px-gutter py-space-xl bg-surface-container-low" id="simulator">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<!-- Header Banner -->
+<div class="p-space-md rounded-xl bg-surface-container-highest flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Ejemplos de Traducción de Memoria</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Demostración interactiva de direccionamiento en modo real y decodificación de selectores en modo protegido.
+            </p>
+</div>
+</div>
+<span class="px-space-sm py-1 rounded bg-surface-container text-on-surface-variant font-code-sm text-code-sm shrink-0">
+          Motor de Arquitectura Intel • Referencia Didáctica
+        </span>
+</div>
+<!-- Interactive tools -->
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-space-lg">
+  <article class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+    <div>
+      <h4 class="font-headline-sm text-on-surface font-bold">Calculadora de Modo Real</h4>
+      <p class="font-body-sm text-on-surface-variant">Dirección física = segmento × 16 + desplazamiento.</p>
+    </div>
+    <form class="flex flex-col gap-space-sm" id="form-real">
+      <label class="font-label-md text-on-surface-variant" for="input-segmento">Segmento hexadecimal</label>
+      <input class="input" id="input-segmento" name="segmento" type="text" value="7C00" maxlength="7" inputmode="text" autocomplete="off" spellcheck="false" aria-describedby="segmento-help">
+      <span class="font-body-sm text-on-surface-variant" id="segmento-help">Hasta 16 bits; se acepta el prefijo 0x o sufijo H.</span>
+      <label class="font-label-md text-on-surface-variant" for="input-desplazamiento">Desplazamiento hexadecimal</label>
+      <input class="input" id="input-desplazamiento" name="desplazamiento" type="text" value="0040" maxlength="7" inputmode="text" autocomplete="off" spellcheck="false">
+      <div class="flex flex-wrap gap-space-sm">
+        <button class="btn btn-secondary" id="btn-calcular-real" type="submit">Calcular dirección</button>
+        <button class="btn btn-ghost" id="btn-limpiar-real" type="button">Limpiar</button>
+      </div>
+    </form>
+    <div id="resultado-real" aria-live="polite"></div>
+  </article>
+
+  <article class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+    <div>
+      <h4 class="font-headline-sm text-on-surface font-bold">Decodificador de Selector</h4>
+      <p class="font-body-sm text-on-surface-variant">Extrae índice, indicador de tabla (TI) y privilegio (RPL).</p>
+    </div>
+    <form class="flex flex-col gap-space-sm" id="form-protegido">
+      <label class="font-label-md text-on-surface-variant" for="input-selector">Selector hexadecimal (16 bits)</label>
+      <input class="input" id="input-selector" name="selector" type="text" value="001B" maxlength="7" inputmode="text" autocomplete="off" spellcheck="false">
+      <div class="flex flex-wrap gap-space-sm">
+        <button class="btn btn-primary" id="btn-calcular-protegido" type="submit">Decodificar selector</button>
+        <button class="btn btn-ghost" id="btn-limpiar-protegido" type="button">Limpiar</button>
+      </div>
+    </form>
+    <div id="resultado-protegido" aria-live="polite"></div>
+  </article>
+
+</div>
+<!-- Calculators / Static Educational Cards Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-lg">
+<!-- SUBSECCIÓN A: Ejemplo de Modo Real (8086) -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[20px]">calculate</span>
+              Ejemplo de Modo Real (8086)
+            </h4>
+<span class="font-code-sm text-code-sm text-secondary font-semibold">Aritmética Plana de 16 bits</span>
+</div>
+<!-- Pre-filled Values Display -->
+<div class="grid grid-cols-2 gap-space-md">
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Dirección de Segmento:</label>
+<div class="flex items-center px-space-sm py-1.5 rounded bg-surface-container font-code-md text-code-md text-on-surface">
+<span class="text-secondary font-bold mr-1">0x</span>
+<span class="font-bold">7C00</span>
+</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Desplazamiento:</label>
+<div class="flex items-center px-space-sm py-1.5 rounded bg-surface-container font-code-md text-code-md text-on-surface">
+<span class="text-secondary font-bold mr-1">0x</span>
+<span class="font-bold">0040</span>
+</div>
+</div>
+</div>
+<!-- Step-by-Step Mathematical Decomposition -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-xs font-code-sm text-code-sm text-on-surface">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-bold">Desglose de Operación Hardware:</span>
+<div class="flex justify-between items-center py-1 bg-surface-container-low px-2 rounded">
+<span class="text-on-surface-variant">Paso 1: Multiplicar Segmento por 16 (desplazamiento a la izquierda &lt;&lt; 4):</span>
+<strong class="text-secondary font-mono font-bold">0x7C000</strong>
+</div>
+<div class="flex justify-between items-center py-1 bg-surface-container-low px-2 rounded">
+<span class="text-on-surface-variant">Paso 2: Sumar Desplazamiento de 16 bits (+ 0x0040):</span>
+<span class="font-mono text-on-surface">0x7C000 + 0x0040</span>
+</div>
+<div class="flex justify-between items-center py-2 px-space-sm rounded bg-secondary-fixed text-on-secondary-fixed font-bold mt-1">
+<span class="font-label-md text-label-md uppercase">Resultado del Ejemplo (Dirección Física de 20 bits):</span>
+<span class="font-code-lg text-code-lg font-bold">0x7C040</span>
+</div>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-tertiary">info</span>
+<span>Nota pedagógica: <code>0x7C00</code> es la dirección base estándar donde la BIOS carga el Sector de Arranque (MBR) en la arquitectura PC compatible.</span>
+</div>
+</div>
+<!-- SUBSECCIÓN B: Ejemplo de Modo Protegido (GDT + Lineal) -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">hub</span>
+              Ejemplo de Modo Protegido (GDT + Lineal)
+            </h4>
+<span class="font-code-sm text-code-sm text-primary font-semibold">Segmentación 80386</span>
+</div>
+<!-- Selector & Offset Pre-filled Display -->
+<div class="grid grid-cols-2 gap-space-md">
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Selector:</label>
+<div class="flex items-center px-space-sm py-1.5 rounded bg-surface-container font-code-md text-code-md text-on-surface">
+<span class="text-primary font-bold mr-1">0x</span>
+<span class="font-bold">001B</span>
+</div>
+</div>
+<div>
+<label class="font-label-md text-label-md text-on-surface-variant block mb-1">Desplazamiento:</label>
+<div class="flex items-center px-space-sm py-1.5 rounded bg-surface-container font-code-md text-code-md text-on-surface">
+<span class="text-primary font-bold mr-1">0x</span>
+<span class="font-bold">0004A200</span>
+</div>
+</div>
+</div>
+<!-- Live Breakdown of Fields -->
+<div class="grid grid-cols-3 gap-space-xs font-code-sm text-code-sm text-center">
+<div class="p-2 rounded bg-surface-container-low flex flex-col">
+<span class="text-outline font-label-sm uppercase">Índice en GDT</span>
+<strong class="text-primary font-bold text-code-md">Índice = 3</strong>
+<span class="text-[10px] text-on-surface-variant">Entrada #3 de la GDT</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low flex flex-col">
+<span class="text-outline font-label-sm uppercase">Tabla (TI)</span>
+<strong class="text-tertiary font-bold text-code-md">TI = 0</strong>
+<span class="text-[10px] text-on-surface-variant">Tabla GDT Global</span>
+</div>
+<div class="p-2 rounded bg-surface-container-low flex flex-col">
+<span class="text-outline font-label-sm uppercase">Privilegio (RPL)</span>
+<strong class="text-secondary font-bold text-code-md">RPL = 3</strong>
+<span class="text-[10px] text-on-surface-variant">Nivel Ring 3 (Usuario)</span>
+</div>
+</div>
+<!-- Descriptor & Final Linear Address Box -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-xs font-code-sm text-code-sm text-on-surface">
+<div class="flex justify-between items-center text-[12px] text-on-surface-variant">
+<span>Descriptor en GDT[3]:</span>
+<span class="font-mono text-primary font-semibold">Dirección Base = 0x00400000 | Límite: 4 GB</span>
+</div>
+<div class="flex justify-between items-center py-2 px-space-sm rounded bg-primary-fixed text-on-primary-fixed font-bold mt-1">
+<span class="font-label-md text-label-md uppercase">Resultado del Ejemplo (Dirección Lineal):</span>
+<span class="font-code-lg text-code-lg font-bold">0x0044A200</span>
+</div>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">memory</span>
+<span>Si la paginación está inactiva, la Dirección Lineal coincide directamente con la Dirección Física en el bus de memoria.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. MATRIZ COMPARATIVA COMPLETA -->
+<section class="w-full px-gutter py-space-xl bg-surface-container-lowest" id="matrix">
+<div class="max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-xs text-center max-w-3xl mx-auto">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">Resumen de Ingeniería</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">
+          Matriz Técnica Comparativa: Modo Real vs Modo Protegido
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Diferencias funcionales determinantes para el diseño de kernels, compiladores y sistemas operativos de arquitectura x86.
+        </p>
+</div>
+<!-- Comparative Table Container -->
+<div class="overflow-x-auto rounded-xl bg-surface-container-low shadow-sm p-1">
+<table class="w-full text-left font-body-sm text-body-sm text-on-surface border-collapse">
+<thead>
+<tr class="bg-surface-container-high/60 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+<th class="p-space-md">Característica</th>
+<th class="p-space-md text-secondary">Modo Real (16 bits / 8086)</th>
+<th class="p-space-md text-primary">Modo Protegido (80286 / 80386 )</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Microprocesador Base</td>
+<td class="p-space-md font-code-sm text-code-sm">Intel 8086 / 8088 (Año 1978)</td>
+<td class="p-space-md font-code-sm text-code-sm">Intel 80286 (16 bits) / Intel 80386 (32 bits, Año 1985)</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Bits del Procesador / Bus</td>
+<td class="p-space-md">
+<span class="inline-flex px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed font-code-sm text-code-sm font-semibold">16 bits internos</span> / Bus de 20 bits (A0..A19)
+              </td>
+<td class="p-space-md">
+<span class="inline-flex px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-code-sm text-code-sm font-semibold">32 bits internos</span> / Bus de 32 bits (A0..A31) / 36 bits con PAE
+              </td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Memoria Máxima Direccionable</td>
+<td class="p-space-md font-code-sm text-code-sm">1 MB (1,048,576 B) + 64 KB High Memory Area (HMA)</td>
+<td class="p-space-md font-code-sm text-code-sm">4 GB (4,294,967,296 B) de espacio lineal plano (hasta 64 TB virtuales con LDT)</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Estructura del Segmento</td>
+<td class="p-space-md">Párrafo base absoluto de 16 bits sin metadatos asociados.</td>
+<td class="p-space-md">Selector de 16 bits apuntando a Descriptor de 64 bits (Base, Límite, Atributos).</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Niveles de Privilegio y Protección</td>
+<td class="p-space-md text-error flex items-center gap-1 font-semibold">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+                Sin protección (Acceso irrestricto a todo el mapa de memoria)
+              </td>
+<td class="p-space-md text-tertiary font-semibold">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                  4 Anillos jerárquicos de hardware (Ring 0 Kernel → Ring 3 Usuario)
+                </span>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Fórmula de Dirección</td>
+<td class="p-space-md font-code-sm text-code-sm text-secondary font-bold">
+                (Segmento × 16) + Desplazamiento
+              </td>
+<td class="p-space-md font-code-sm text-code-sm text-primary font-bold">
+                Dirección Base del Descriptor + Desplazamiento (32 bits)
+              </td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Memoria Virtual y Paginación</td>
+<td class="p-space-md text-outline">No soportado por hardware</td>
+<td class="p-space-md">
+<span class="inline-flex items-center gap-1 text-tertiary font-semibold">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                  Soportado mediante unidad MMU (Unidad de Gestión de Memoria) con registro de control
+</span>
+</td>
+</tr>
+<!-- Row 8 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Manejo de Errores de Segmentación</td>
+<td class="p-space-md text-outline">Inexistente; causa cuelgue o corrupción silenciosa</td>
+<td class="p-space-md font-code-sm text-code-sm text-error">
+                Excepción por fallo de protección general (#GP Fault / Vector 13)
+              </td>
+</tr>
+<!-- Row 9 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="p-space-md font-semibold font-headline-sm text-headline-sm">Multitarea</td>
+<td class="p-space-md text-outline">No soportada nativamente (gestión manual por software)</td>
+<td class="p-space-md font-code-sm text-code-sm text-primary">
+                Soportada por hardware mediante TSS (Task State Segment) y protección de anillos
+              </td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+<script src="js/modo-real.js"></script>
+<script src="js/modo-protegido.js"></script>
+<script src="js/main.js"></script>
+</main><footer class="w-full bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.04)] py-space-xl"><div class="w-full px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm text-on-surface-variant"><span class="material-symbols-outlined text-primary text-[20px]">developer_board</span><span class="font-label-md text-label-md">Direccionamiento de Memoria x86 • Arquitectura de Computadores</span></div><div class="flex items-center gap-space-lg text-on-surface-variant font-code-sm text-code-sm"><span>Universidad Francisco de Paula Santander - 2026</span><span>Sebastián Andrés Peña Rojas</span></div></div></footer></body></html>
